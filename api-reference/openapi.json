@@ -1,16 +1,31 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
+    "title": "FamilyCo API",
+    "description": "Core and Knowledge endpoints from the FamilyCo Fastify server.",
+    "version": "1.0.0",
     "license": {
       "name": "MIT"
-    },
-    "version": "1.0.0"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "http://127.0.0.1:4000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Core",
+      "description": "Infrastructure and runtime status endpoints."
+    },
+    {
+      "name": "Auth",
+      "description": "Token and API key related endpoints."
+    },
+    {
+      "name": "Knowledge",
+      "description": "Document upload, indexing, and retrieval endpoints."
     }
   ],
   "security": [
@@ -19,76 +34,21 @@
     }
   ],
   "paths": {
-    "/plants": {
+    "/health": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
+        "tags": [
+          "Core"
         ],
+        "summary": "Get service health",
+        "description": "Reports runtime mode, queue statistics, and migration status.",
+        "security": [],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Service health snapshot",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/HealthResponse"
                 }
               }
             }
@@ -96,121 +56,1000 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    "/api/v1/auth/token": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Create JWT from API key",
+        "description": "Verifies an API key and returns a short-lived bearer token.",
+        "security": [],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/AuthTokenRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Token created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/commands": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List available converter commands",
+        "description": "Returns all configured Knowledge converter command definitions. Requires L0 authorization.",
+        "responses": {
+          "200": {
+            "description": "Available converter commands",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeCommandListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/converter/status": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Get converter binary status",
+        "description": "Checks whether the document converter binary can be resolved. Requires L0 authorization.",
+        "responses": {
+          "200": {
+            "description": "Converter status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeConverterStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/documents": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List knowledge documents",
+        "description": "Lists uploaded knowledge documents with optional filtering. Requires L0 authorization.",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/KnowledgeDocumentStatus"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Knowledge document list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeDocumentListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or business error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/documents/upload": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Upload knowledge document",
+        "description": "Uploads one source file and creates a knowledge document record. Requires L0 authorization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Document file to upload"
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "description": "Optional project scope"
+                  },
+                  "source": {
+                    "type": "string",
+                    "description": "Optional source label"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeDocumentItem"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/documents/{id}/index": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Index knowledge document",
+        "description": "Runs converter, chunking, and embeddings for a document. Requires L0 authorization.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeIndexRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Indexing completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeIndexResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or indexing error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/documents/{id}": {
+      "delete": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Delete knowledge document",
+        "description": "Deletes the knowledge document and related chunks/embeddings. Requires L0 authorization.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete succeeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooleanOkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or deletion error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/documents/{id}/chunks": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "List chunks for a knowledge document",
+        "description": "Returns chunk records for one knowledge document. Requires L0 authorization.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chunk list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeChunkListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or lookup error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/retrieve": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Retrieve knowledge context",
+        "description": "Searches indexed chunks by semantic similarity. Requires L0 authorization.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeRetrieveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Retrieval result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeRetrieveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation or retrieval error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "ErrorResponse": {
         "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
         "required": [
-          "error",
+          "statusCode",
+          "code",
           "message"
         ],
-        "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "statusCode": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
           },
           "message": {
             "type": "string"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      },
+      "HealthQueueLane": {
+        "type": "object",
+        "required": [
+          "queued",
+          "running",
+          "completed",
+          "failed"
+        ],
+        "properties": {
+          "queued": {
+            "type": "integer"
+          },
+          "running": {
+            "type": "integer"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          }
+        }
+      },
+      "HealthQueueStats": {
+        "type": "object",
+        "required": [
+          "agentRunConcurrency",
+          "toolExecuteConcurrency",
+          "totalJobs",
+          "queuedJobs",
+          "runningJobs",
+          "completedJobs",
+          "failedJobs",
+          "byType"
+        ],
+        "properties": {
+          "agentRunConcurrency": {
+            "type": "integer"
+          },
+          "toolExecuteConcurrency": {
+            "type": "integer"
+          },
+          "totalJobs": {
+            "type": "integer"
+          },
+          "queuedJobs": {
+            "type": "integer"
+          },
+          "runningJobs": {
+            "type": "integer"
+          },
+          "completedJobs": {
+            "type": "integer"
+          },
+          "failedJobs": {
+            "type": "integer"
+          },
+          "byType": {
+            "type": "object",
+            "required": [
+              "agentRun",
+              "toolExecute"
+            ],
+            "properties": {
+              "agentRun": {
+                "$ref": "#/components/schemas/HealthQueueLane"
+              },
+              "toolExecute": {
+                "$ref": "#/components/schemas/HealthQueueLane"
+              }
+            }
+          }
+        }
+      },
+      "MigrationState": {
+        "type": "object",
+        "required": [
+          "status",
+          "pendingCount",
+          "appliedCount",
+          "errorMessage"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "pendingCount": {
+            "type": "integer"
+          },
+          "appliedCount": {
+            "type": "integer"
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "mode",
+          "queueDriver",
+          "queue",
+          "migration"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "read_only"
+            ]
+          },
+          "queueDriver": {
+            "type": "string",
+            "enum": [
+              "memory"
+            ]
+          },
+          "queue": {
+            "$ref": "#/components/schemas/HealthQueueStats"
+          },
+          "migration": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MigrationState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AuthTokenRequest": {
+        "type": "object",
+        "required": [
+          "apiKey"
+        ],
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "tokenType",
+          "apiKeyId",
+          "level"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "apiKeyId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "L0",
+              "L1",
+              "L2"
+            ]
+          }
+        }
+      },
+      "KnowledgeCommandItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "KnowledgeCommandListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeCommandItem"
+            }
+          }
+        }
+      },
+      "KnowledgeConverterStatus": {
+        "type": "object",
+        "required": [
+          "installed",
+          "path"
+        ],
+        "properties": {
+          "installed": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "KnowledgeDocumentStatus": {
+        "type": "string",
+        "enum": [
+          "uploaded",
+          "indexing",
+          "indexed",
+          "failed"
+        ]
+      },
+      "KnowledgeDocumentItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "fileType",
+          "source",
+          "projectId",
+          "version",
+          "status",
+          "checksum",
+          "filePath",
+          "markdownPath",
+          "converterCommand",
+          "converterMeta",
+          "errorMessage",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/KnowledgeDocumentStatus"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "filePath": {
+            "type": "string"
+          },
+          "markdownPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "converterCommand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "converterMeta": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KnowledgeDocumentListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeDocumentItem"
+            }
+          }
+        }
+      },
+      "KnowledgeIndexRequest": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxChars": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 4000
+          },
+          "overlapChars": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1600
+          }
+        }
+      },
+      "KnowledgeIndexResponse": {
+        "type": "object",
+        "required": [
+          "document",
+          "chunkCount",
+          "embeddingModel"
+        ],
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/KnowledgeDocumentItem"
+          },
+          "chunkCount": {
+            "type": "integer"
+          },
+          "embeddingModel": {
+            "type": "string"
+          }
+        }
+      },
+      "KnowledgeChunkItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "documentId",
+          "chunkIndex",
+          "sectionPath",
+          "page",
+          "content",
+          "tokenEstimate",
+          "metadata",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "chunkIndex": {
+            "type": "integer"
+          },
+          "sectionPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "tokenEstimate": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "metadata": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KnowledgeChunkListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeChunkItem"
+            }
+          }
+        }
+      },
+      "KnowledgeRetrieveRequest": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1
+          },
+          "topK": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "minScore": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1
+          },
+          "projectId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "documentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "KnowledgeRetrieveItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "score",
+          "model",
+          "documentId",
+          "documentName",
+          "projectId",
+          "source",
+          "chunkIndex",
+          "sectionPath",
+          "page",
+          "content",
+          "metadata"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "model": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": "string"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "chunkIndex": {
+            "type": "integer"
+          },
+          "sectionPath": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "KnowledgeRetrieveResponse": {
+        "type": "object",
+        "required": [
+          "query",
+          "topK",
+          "items"
+        ],
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "topK": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeRetrieveItem"
+            }
+          }
+        }
+      },
+      "BooleanOkResponse": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

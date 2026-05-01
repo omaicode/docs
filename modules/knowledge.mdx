@@ -1,0 +1,57 @@
+---
+title: "Knowledge"
+description: "Upload, index, and retrieve internal documents for agent context."
+icon: "database"
+---
+
+Knowledge gives your agents retrieval-augmented context from internal documents. You upload source files, run indexing, and query the resulting chunks before or during execution.
+
+## What it includes
+
+- **Document library** with project and status filters
+- **Converter status** check for the `familyco-py` binary
+- **Chunk indexing controls** (`maxChars`, `overlapChars`)
+- **Chunk explorer** per document
+- **Retrieval preview** by query, project, and document filters
+
+## Document lifecycle
+
+1. Upload a file to `/api/v1/knowledge/documents/upload`.
+2. The document starts in `uploaded` state.
+3. Run index on the document (`/api/v1/knowledge/documents/{id}/index`).
+4. The system converts, chunks, embeds, and stores vector rows.
+5. The document moves to `indexed` (or `failed` with `errorMessage`).
+6. Retrieve candidates via `/api/v1/knowledge/retrieve`.
+
+## Storage model
+
+- Original files are stored under `<workspace>/knowledge/documents/<documentId>/original/...`.
+- Combined converted markdown is stored under `<workspace>/knowledge/converted/<documentId>/combined.md`.
+- With the `prisma` repository driver, vector-backed knowledge records are persisted in a dedicated SQLite database (`familyco-knowledge.db`).
+
+## Permissions and audit
+
+- Knowledge routes require authenticated API access.
+- All Knowledge routes enforce minimum level `L0`.
+- Upload, index, and delete operations are written to the audit log:
+  - `knowledge.document.upload`
+  - `knowledge.document.index`
+  - `knowledge.document.delete`
+
+## Operational notes
+
+- Upload accepts multipart form data and a single file per request.
+- Server-side multipart limits cap uploads at 25 MB.
+- Indexing depends on the converter binary path (`knowledge.converter.binaryPath`) or fallback binary resolution.
+- Retrieval normalizes defaults when omitted: `topK=6`, `minScore=0.12`.
+
+## Converter source: familyco-py
+
+FamilyCo uses the `familyco-py` converter binary for document conversion before chunking and embedding.
+
+- **Repository:** [omaicode/familyco-py](https://github.com/omaicode/familyco-py)
+- **Binary source:** download from the repository's [latest releases](https://github.com/omaicode/familyco-py/releases/latest)
+
+`familyco-py` is a Python toolkit CLI for FamilyCo. Its current production module is `doc-convert`, powered by Docling, which supports document conversion and OCR. The repository is structured as a modular CLI so future modules (for example image processing and summarization) can be added without changing the main entrypoint.
+
+For request and response schemas, see the [API reference](/api-reference/introduction).

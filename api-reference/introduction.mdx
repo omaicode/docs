@@ -1,6 +1,6 @@
 ---
 title: "API introduction"
-description: "Authentication, base URL, and module layout for the FamilyCo API."
+description: "Authentication, base URL, and scope of the current FamilyCo API reference."
 ---
 
 The FamilyCo server exposes a Fastify HTTP API. Every workflow surface — chat, agents, projects, tasks, inbox, audit, budget, skills, tools, plugins, automation, providers — has a corresponding controller under `apps/server/src/modules/<module>`.
@@ -12,7 +12,7 @@ The FamilyCo server exposes a Fastify HTTP API. Every workflow surface — chat,
 | Local server | `http://127.0.0.1:4000` |
 | Electron desktop | The embedded server picks a free port at startup. |
 
-All routes live under the `API_PREFIX` (default `/api/v1`).
+Most routes live under the `API_PREFIX` (default `/api/v1`). The health endpoint is served at `/health`.
 
 ## Authentication
 
@@ -82,3 +82,22 @@ The server registers controllers per module. The current set:
 - `tools` — tool policy and custom fields.
 
 For per-module behavior, contracts, and constraints, see the [Modules](/modules/chat) section.
+
+## Current reference scope
+
+The API reference pages in this docs site currently cover:
+
+- **Core** endpoints used during setup and runtime checks:
+  - `GET /health`
+  - `POST /api/v1/auth/token`
+- **Knowledge** endpoints:
+  - `GET /api/v1/knowledge/commands`
+  - `GET /api/v1/knowledge/converter/status`
+  - `GET /api/v1/knowledge/documents`
+  - `POST /api/v1/knowledge/documents/upload`
+  - `POST /api/v1/knowledge/documents/{id}/index`
+  - `GET /api/v1/knowledge/documents/{id}/chunks`
+  - `DELETE /api/v1/knowledge/documents/{id}`
+  - `POST /api/v1/knowledge/retrieve`
+
+Additional module endpoints already exist in the server and shared UI contracts and can be added to this API reference incrementally.
