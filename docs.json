@@ -37,6 +37,7 @@
             "pages": [
               "modules/chat",
               "modules/agents",
+              "modules/knowledge",
               "modules/projects",
               "modules/tasks",
               "modules/inbox",
@@ -69,49 +70,22 @@
           {
             "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/introduction",
+              "api-reference/health",
+              "api-reference/auth-token"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Knowledge API",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Docs authoring",
-        "groups": [
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Agent ready",
-            "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "api-reference/knowledge/commands",
+              "api-reference/knowledge/converter-status",
+              "api-reference/knowledge/list-documents",
+              "api-reference/knowledge/upload-document",
+              "api-reference/knowledge/index-document",
+              "api-reference/knowledge/list-chunks",
+              "api-reference/knowledge/delete-document",
+              "api-reference/knowledge/retrieve"
             ]
           }
         ]

@@ -1,0 +1,26 @@
+---
+title: "Get converter status"
+openapi: "GET /api/v1/knowledge/converter/status"
+---
+
+This endpoint verifies whether the Knowledge converter binary is available to the server runtime.
+
+The converter is `familyco-py`, downloaded from:
+
+- Repository: [omaicode/familyco-py](https://github.com/omaicode/familyco-py)
+- Release assets: [latest release downloads](https://github.com/omaicode/familyco-py/releases/latest)
+
+About `familyco-py`:
+
+- It is a Python toolkit CLI used by FamilyCo for document preprocessing.
+- Its current core module is `doc-convert` (Docling-based conversion and OCR).
+- FamilyCo uses the converter output as the input for chunking and knowledge indexing.
+
+Expected response shape:
+
+```json
+{
+	"installed": true,
+	"path": "/absolute/path/to/familyco-py"
+}
+```
