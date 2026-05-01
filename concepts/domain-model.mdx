@@ -1,0 +1,148 @@
+---
+title: "Domain model"
+description: "Core entities, relationships, and invariants in FamilyCo."
+icon: "database"
+---
+
+The Prisma schema in `packages/db` is the source of truth for persistence. The entities below capture the operational shape of the product.
+
+## Core entities
+
+### Company
+
+Top-level tenant for the Founder. Holds defaults and global budget caps.
+
+- `id`, `name`, `description`
+- `themeMode`
+- `defaultProvider`, `defaultModel`
+- `globalBudgetSoftCap`, `globalBudgetHardCap`
+- `createdAt`, `updatedAt`
+
+### User
+
+The Founder. Secondary roles (operators, EAs) come later.
+
+- `id`, `companyId`, `role = founder`
+- `displayName`, `email`, `avatarUrl`
+- `createdAt`, `updatedAt`
+
+### Agent
+
+An AI employee with a level, mission, and budget policy.
+
+- `id`, `companyId`, `managerAgentId` *(nullable)*
+- `name`, `title`, `description`
+- `level`: `L0` *(executive)* · `L1` *(manager)* · `L2` *(worker)*
+- `status`: `active` · `idle` · `running` · `error` · `paused` · `terminated` · `archived`
+- `mission`, `defaultModel`, `provider`, `temperature`, `maxTokens`
+- `budgetPolicyId` *(nullable)*
+- `systemPrompt`
+- `createdByUserId`, `createdByAgentId` *(nullable)*
+
+### ChatSession / ChatMessage
+
+Per-recipient conversation threads.
+
+```txt
+ChatSession ──< ChatMessage
+```
+
+- `ChatSession`: `id`, `recipientId` (agentId), `title`, `summary`, timestamps
+- `ChatMessage`: `id`, `sessionId`, `recipientId`, `senderId`, `type` (`info` · `alert` · `report`), `title`, `body`, `payloadJson`
+
+### Skill
+
+Discovered from `{CODEBASE}/skills/{name}/SKILL.md`. See [Skills standard](/concepts/skills-standard).
+
+- `id`, `companyId`, `name`, `slug`, `path`, `enabled`
+- `description`, `compatibility`, `metadataJson`
+- `checksum`, `version`, `discoveredAt`, `updatedAt`
+
+### Project / Task
+
+Projects own tasks; tasks have a lifecycle, dependencies, and readiness rules.
+
+- **Project**: `id`, `ownerAgentId`, `name`, `description`, `parentProjectId`, `dirPath`
+- **Task**: `id`, `projectId`, `assigneeAgentId`, `title`, `description`,
+  `status` (`pending` · `in_progress` · `review` · `done` · `blocked` · `cancelled`),
+  `priority` (`low` · `medium` · `high` · `urgent`),
+  `dependsOnTaskIds`, `readinessRules`
+
+### InboxMessage / ApprovalRequest
+
+The Founder's queue and the underlying approval record.
+
+- **InboxMessage**: `type` (`approval` · `report` · `alert` · `info`), `status` (`unread` · `read` · `archived`)
+- **ApprovalRequest**: `actorId`, `action`, `targetId`, `status` (`pending` · `approved` · `rejected`), `payload`
+
+### AgentRun
+
+The orchestration unit. See lifecycle in [Agent operating model](/concepts/agent-operating-model).
+
+- `triggerType`: `founder_chat` · `task_execution` · `retry` · `approval_resume` · `schedule`
+- `state`: `queued` · `planning` · `waiting_approval` · `executing` · `completed` · `failed` · `cancelled`
+- `inputSummary`, `outputSummary`, linked project/task IDs
+
+### CronJob / CronRunRecord
+
+Recurring automation owned by an agent.
+
+- **CronJob**: `name`, `prompt`, `schedule`, `agentId`, `enabled`, `sessionId`, `lastRunAt`, `nextRunAt`
+- **CronRunRecord**: `cronId`, `status` (`success` · `failed`), `scheduledAt`, `startedAt`, `finishedAt`, `input`, `output`, `error`
+
+### BudgetUsage
+
+Token and cost ledger. One row per provider call.
+
+- `companyId`, `runId`, `agentId`, `projectId`, `taskId`
+- `provider`, `model`
+- `promptTokens`, `completionTokens`, `totalTokens`
+- `estimatedCost`, `currency`, `recordedAt`
+
+### AuditLog
+
+Append-only log of meaningful actions across modules.
+
+- `actorType` (`user` · `agent` · `system`), `actorId`
+- `action`, `entityType`, `entityId`, `traceId`
+- `beforeJson`, `afterJson`, `metadataJson`
+
+### Setting
+
+Key/value JSON store. Common keys:
+
+- `tools.registry` — plugin tool enable/disable policy.
+- `tools.customFields` — per-plugin-tool custom field values.
+
+### ApiKeyRecord
+
+Authentication for API and Electron shell.
+
+- `id`, `name`, `keyHash`, `active`, timestamps
+
+## Key relationships
+
+- One **Company** has many Agents, Projects, Tasks, Skills, Inbox messages, Approvals, Runs, Budget rows, Audit logs, and Cron jobs.
+- One **Agent** has many ChatSessions; one ChatSession has many ChatMessages.
+- One **Agent** may manage many Agents.
+- One **Project** has many Tasks.
+- One **Run** may produce many BudgetUsage rows and many AuditLogs.
+- One **ApprovalRequest** may block an AgentRun while waiting for review.
+- One **CronJob** produces many CronRunRecord entries.
+
+## Invariants
+
+- There is exactly one active Executive Agent per company.
+- Terminated or archived agents cannot receive new tasks.
+- Disabled skills cannot be selected for new runs.
+- A plugin tool with missing required custom fields cannot be enabled.
+- Any run in `waiting_approval` maps to at least one pending `ApprovalRequest`.
+- `totalTokens = promptTokens + completionTokens`.
+- A task is execution-ready only when every `dependsOnTaskIds` entry resolves to a completed task and all supported `readinessRules` are satisfied.
+
+## Prisma notes
+
+- Use enum types for stable statuses.
+- Use JSON fields sparingly for metadata and snapshots.
+- Keep money fields as decimal strings or `Prisma.Decimal`.
+- Add indexes for `createdAt`, status fields, foreign keys, and reporting filters.

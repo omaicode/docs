@@ -1,0 +1,49 @@
+---
+title: "Audit log"
+description: "Append-only record of every meaningful action across modules."
+icon: "scroll"
+---
+
+The audit log records actor, action, target, and metadata for every meaningful event. Use it to trace exactly what happened and why.
+
+## Filters
+
+- Time range
+- Actor type (`user` · `agent` · `system`)
+- Action
+- Entity type
+- Entity id
+- Trace id
+
+## Entry contents
+
+Each entry contains:
+
+- **actor** (type + id)
+- **action**
+- **target** (entity type + id)
+- **timestamp**
+- **human-readable summary**
+- **raw metadata drawer** — `beforeJson`, `afterJson`, `metadataJson`
+
+## What gets audited
+
+Workflow side effects across:
+
+- Chat directives and run lifecycle transitions
+- Agent CRUD and status changes
+- Project / task changes
+- Skill enable / disable
+- Settings and provider connection changes
+- Budget cap events
+- API key lifecycle (create / revoke / rotate)
+
+## Trace correlation
+
+Use `traceId` to connect a run, its tool executions, audit entries, and budget rows. The runtime injects a trace id at the start of every agent or tool execution.
+
+## Logging discipline
+
+- Human-facing summaries belong in audit metadata or summaries.
+- Avoid dumping full prompt contents into logs by default.
+- Token and cost numbers are stored on every provider call (in [Budget](/modules/budget)).

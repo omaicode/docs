@@ -1,0 +1,151 @@
+---
+title: "Architecture"
+description: "How the FamilyCo monorepo, runtime, and apps fit together."
+icon: "diagram-project"
+---
+
+FamilyCo is a pnpm + Turborepo monorepo. Apps consume shared packages; the server hosts orchestration; the renderer (web or Electron) is a thin operational client.
+
+## Monorepo layout
+
+```txt
+familyco/
+├─ apps/
+│  ├─ electron/          Desktop shell
+│  ├─ web/               Vue 3 operational client
+│  └─ server/            Fastify API + orchestration + runtime
+│     └─ src/
+│        ├─ app.ts       Composition root
+│        ├─ bootstrap/   Repos, queue handlers, lifecycle, routes, http
+│        ├─ modules/     Feature modules (agent, project, task, ...)
+│        ├─ runtime/     Schedulers and runtime services
+│        └─ repositories/
+├─ packages/
+│  ├─ core/              Domain types, DTOs, validation, policies
+│  ├─ agent-runtime/     Planner, tool flow, approval gate, run state
+│  ├─ db/                Prisma schema, migrations, db wrappers
+│  └─ ui/                Shared UI primitives, stores, i18n
+├─ plugins/              Plugins (each contributes tools and skills)
+└─ pnpm-workspace.yaml
+```
+
+## Apps
+
+### `apps/electron`
+
+- Electron shell that embeds the server and renders the web app.
+- Best UX for the Founder.
+- Local-first access to settings, chat, approvals, and reporting.
+
+### `apps/web`
+
+- Vue 3 SPA built with Vite.
+- Lightweight operational client for review, approvals, and monitoring.
+- Persists chat session selection in browser state for fast restore.
+
+### `apps/server`
+
+- Fastify HTTP API at `/api/v1`.
+- Agent orchestration, background jobs, scheduled runs.
+- Budget metering and audit log writing.
+- Skill discovery and activation.
+- Plugin discovery, enablement, and capability registration.
+- Tool policy service (enable/disable + custom fields) synced to the executor.
+- Multi-session chat orchestration.
+- Startup migration safety can switch the server into read-only mode for write operations.
+
+## Server bootstrap composition
+
+`apps/server/src/app.ts` is intentionally a thin composition root. Bootstrapping concerns live under `apps/server/src/bootstrap/`:
+
+| File | Responsibility |
+| --- | --- |
+| `bootstrap/repositories.ts` | Repository driver wiring (`memory` / `prisma`). |
+| `bootstrap/queue-handlers.ts` | Queue lane handlers for agent / tool / task execution. |
+| `bootstrap/lifecycle.ts` | Startup/shutdown hooks (migration safety, bootstrap API key, schedulers, plugin discovery). |
+| `bootstrap/routes.ts` | `/api/v1` route and controller registration plus request guards. |
+| `bootstrap/http.ts` | Health endpoint and global error handler. |
+| `bootstrap/helpers.ts` | Server bootstrap helpers (CORS matcher, concurrency defaults, queue stats, trace helpers). |
+
+## Async execution lanes
+
+The server runs an in-process queue with three lanes:
+
+- **`agent.run`** — executes agent workflows and updates run lifecycle state.
+- **`tool.execute`** — executes tool calls through runtime policy and the audit pipeline.
+- **`task.execute`** — executes ready tasks (single task or agent batch) with heartbeat and audit integration.
+
+Concurrency auto-scales by CPU cores by default:
+
+- Agent concurrency: `max(2, floor(cpu/2))`
+- Tool concurrency: `max(4, cpu)`
+
+Override with `FAMILYCO_QUEUE_AGENT_CONCURRENCY` and `FAMILYCO_QUEUE_TOOL_CONCURRENCY`.
+
+## Packages
+
+| Package | Responsibility |
+| --- | --- |
+| `@familyco/core` | Domain types, validation schemas, business policies, enums, DTOs. Must not import other internal packages. |
+| `@familyco/agent-runtime` | Planner, task decomposer, approval gate, skill router, usage meter, run state machine. |
+| `@familyco/db` | Prisma schema, migrations, seed scripts, DB access wrappers. |
+| `@familyco/ui` | Shared design tokens, components, layout primitives. |
+
+## High-level flow
+
+1. Founder sends a directive in **Chat**.
+2. Server creates an **AgentRun**.
+3. **Executive Agent** interprets intent.
+4. Planner creates or updates **Projects** and **Tasks**.
+5. Agent router selects enabled **Skills**.
+6. If approval is needed, an **ApprovalRequest** is created and the run pauses in `waiting_approval`.
+7. When approved, execution continues.
+8. **BudgetUsage** and **AuditLog** entries are written throughout.
+
+## Tool policy flow
+
+1. Runtime tool definitions are collected from built-in tools and enabled plugins.
+2. Tool policy state is persisted in settings:
+   - `tools.registry` — enabled/disabled plugin tools.
+   - `tools.customFields` — per-tool custom field values.
+3. Required custom fields are validated before enabling plugin tools.
+4. The chat engine receives a tool list filtered by agent level; enabled plugin tools remain available in the prompt and tool context.
+5. The executor injects persisted custom field values into plugin tool execution arguments.
+
+## Runtime safeguards
+
+- **Migration safety** runs during startup before normal mutation traffic.
+- **Health endpoint** reports queue stats, migration status, and read-only mode.
+- **Heartbeat runtime** polls due agents and enqueues heartbeat runs with cooldown and in-flight protections.
+- **Cron runtime** polls due jobs, records run history, and persists last/next schedule markers.
+
+## Design constraints
+
+- Business rules live in `packages/core` or `packages/agent-runtime`, not in UI.
+- UI apps call use-cases or service methods instead of embedding orchestration logic.
+- Prisma schema is the persistence contract.
+- `packages/core` must not import other internal packages.
+- Significant side effects must go through the approval flow.
+- Database access goes through repository abstractions.
+- Event names are explicit and past-tense or command-like, not vague.
+
+## Recommended UI navigation
+
+Chat · Inbox · Agents · Projects · Tasks · Budget · Audit Log · Skills · Settings
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Domain model" icon="database" href="/concepts/domain-model">
+    Entities, relationships, and invariants.
+  </Card>
+  <Card title="Agent operating model" icon="sitemap" href="/concepts/agent-operating-model">
+    Hierarchy, run lifecycle, and clarification policy.
+  </Card>
+  <Card title="Approval policy" icon="shield-check" href="/concepts/approval-policy">
+    What requires approval and how it resolves.
+  </Card>
+  <Card title="Skills standard" icon="sparkles" href="/concepts/skills-standard">
+    How skills are stored, discovered, and toggled.
+  </Card>
+</Columns>

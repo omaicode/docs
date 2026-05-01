@@ -1,133 +1,60 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "Welcome to FamilyCo"
+description: "Run your own AI family business — agents that plan, delegate, execute, and report."
+icon: "house"
 ---
 
-## Setting up
+FamilyCo is an operating system for your own "AI family business." Each agent works like a member of the company — collaborating, sharing the workload, and handling day-to-day operations so you can focus on the bigger decisions.
 
-Get your documentation site up and running in minutes.
+## What you get
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+- **Chat-first directives.** Tell the Executive Agent what you want; it plans and delegates.
+- **Agent hierarchy.** Executive (`L0`), Manager (`L1`), and Worker (`L2`) agents with controllable autonomy.
+- **Structured operations.** Projects, Tasks, and an Inbox for approvals and clarifications.
+- **Audit and Budget.** End-to-end audit log and token/cost tracking with soft and hard caps.
+- **Desktop-first runtime.** Local SQLite via Prisma, with a web client for monitoring.
+- **Skills and Plugins.** Switchable skills and plugin-provided tools, configurable per provider.
 
-## Make it yours
+## Editions
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<Columns cols={3}>
+  <Card title="Desktop" icon="display">
+    The Founder cockpit. Best UX, deepest feature coverage. Ships as Electron for macOS, Windows, and Linux.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Server" icon="server">
+    Fastify API, agent orchestration, queues, scheduling, budget metering, and audit log.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Web" icon="globe">
+    Lightweight Vue 3 client for review, approvals, reporting, and monitoring.
   </Card>
 </Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
+## Get started
 
 <Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="Install FamilyCo" icon="download" href="/quickstart">
+    Install a release build for macOS, Windows, or Linux.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Developer setup" icon="code" href="/development">
+    Run the monorepo locally with `pnpm dev` or `pnpm dev:electron`.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Architecture" icon="diagram-project" href="/concepts/architecture">
+    Learn how apps, packages, and the runtime fit together.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Agent operating model" icon="sitemap" href="/concepts/agent-operating-model">
+    Understand the Executive, Manager, and Worker hierarchy.
   </Card>
 </Columns>
 
-## Make your content agent ready
+## Product flow at a glance
 
-Make your docs work for humans and AI agents alike.
+1. Founder sends a directive in **Chat**.
+2. Server creates an **Agent Run**.
+3. **Executive Agent** creates or updates Projects and Tasks.
+4. Skills are selected from the enabled toolset.
+5. Risky or ambiguous actions pause into the **Inbox** for approval.
+6. Approved runs continue; **Budget** and **Audit** are recorded end-to-end.
 
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+<Card title="See the full architecture" icon="diagram-project" href="/concepts/architecture" horizontal>
+  Monorepo layout, runtime lanes, and design constraints.
 </Card>

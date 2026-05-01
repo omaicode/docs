@@ -1,0 +1,32 @@
+---
+title: "Skills"
+description: "Discover, enable, and inspect agent skills."
+icon: "sparkles"
+---
+
+Skills are reusable capabilities scanned from disk. Use the Skills module to enable, disable, and inspect them. For the file format and conventions, see the [Skills standard](/concepts/skills-standard).
+
+## Views
+
+- **Skill inventory** — all detected skills.
+- **Enable / disable toggle** per skill.
+- **Metadata preview** — frontmatter values, version, owner.
+- **Compatibility display** — runtime constraints.
+- **File path display** — the canonical skill folder.
+
+## Actions
+
+- Rescan the skills folder
+- Enable a skill
+- Disable a skill
+- Inspect skill detail
+
+## Behavior
+
+- Disabled skills remain discoverable in the UI but cannot be selected for new runs.
+- Existing completed runs still reference disabled skills historically.
+- If a run requests a disabled skill, the runtime creates an Inbox warning instead of silently substituting.
+
+## Persistence
+
+Each skill is recorded with `id`, `slug`, `path`, `enabled`, `description`, `compatibility`, `metadataJson`, `checksum`, `version`, `discoveredAt`, and `updatedAt`. Skills are scanned on app start and on manual rescan.

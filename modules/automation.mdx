@@ -1,0 +1,48 @@
+---
+title: "Automation (cron)"
+description: "Recurring agent runs with schedule validation and run history."
+icon: "clock-rotate-left"
+---
+
+Automation lets the Founder schedule recurring directives. Each cron job targets an agent and runs on a validated schedule.
+
+## Views
+
+- **Cron job list**
+- **Cron run history per job**
+- **Create / edit form**
+
+## Actions
+
+- Create a cron job
+- Update schedule, prompt, or target agent
+- Enable / disable a cron job
+- Delete a cron job
+- Inspect latest run results and errors
+
+## Fields
+
+- `name`, `prompt`, `schedule`
+- `agentId` *(if omitted, defaults to the Executive Agent)*
+- `enabled`
+- `sessionId` *(optional — pin runs to a specific chat session)*
+- `lastRunAt`, `nextRunAt` *(maintained by the scheduler)*
+
+## Constraints
+
+- Schedule must pass server-side validation before save.
+- If `agentId` is omitted, the job defaults to executive agent resolution.
+- Cron executions write audit and run-history records.
+
+## Run history
+
+Each execution writes a `CronRunRecord`:
+
+- `cronId`
+- `status`: `success` or `failed`
+- `scheduledAt`, `startedAt`, `finishedAt`
+- `input`, `output`, `error`
+
+## Approval considerations
+
+Recurring automation falls under [AP-02](/concepts/approval-policy#ap-02-required-unless-a-policy-override-exists) — creation may require Founder approval unless policy allows otherwise.

@@ -1,0 +1,38 @@
+---
+title: "Settings"
+description: "Company profile, appearance, defaults, and approval guardrails."
+icon: "sliders"
+---
+
+Settings groups everything the Founder can configure for the company.
+
+## Sections
+
+- **Company profile** — name, description.
+- **Appearance** — light or dark mode (`themeMode`).
+- **Providers** — connect AI providers and select primary + default model. See [Provider connections](/modules/providers).
+- **Defaults** — global model, temperature, cost guardrails, approval behavior.
+- **Approvals and budget guardrails** — soft / hard caps and approval categories.
+
+## Provider fields
+
+Per-provider connection card:
+
+- Provider name
+- API key
+- Base URL *(optional)*
+- Default model
+- Connection status
+
+## Persistence
+
+Settings are stored as JSON values keyed by string in the `Setting` table. A few keys are used by other modules:
+
+| Key | Purpose |
+| --- | --- |
+| `tools.registry` | Plugin tool enable/disable policy. |
+| `tools.customFields` | Per-plugin-tool custom field values. |
+
+## Auditability
+
+Every change to company-wide defaults or provider credentials writes an `AuditLog` entry. Rotating provider credentials and modifying company-wide defaults fall under [AP-01](/concepts/approval-policy#ap-01-required-before-action) — they require approval before action.

@@ -1,0 +1,77 @@
+---
+title: "Coding rules"
+description: "Conventions for AI agents and human contributors."
+icon: "ruler"
+---
+
+Apply these rules when generating, refactoring, or reviewing FamilyCo code.
+
+## Primary objective
+
+Generate production-minded code that matches the documented product, respects the monorepo boundaries, and minimizes unnecessary rewrites.
+
+## General rules
+
+- Do not rewrite unrelated files.
+- Do not rename public interfaces without updating all usages.
+- Prefer small composable functions.
+- Prefer explicit types over implicit behavior.
+- Keep side effects isolated.
+- Avoid hidden global state.
+- Add comments only where intent is not obvious.
+
+## Monorepo rules
+
+- Shared domain logic belongs in `packages/core` or `packages/agent-runtime`.
+- Shared DB logic belongs in `packages/db`.
+- Shared UI belongs in `packages/ui`.
+- App-specific adapters belong in each app under `apps/*`.
+- `packages/core` must not import other internal packages.
+
+## UI rules
+
+- Vue 3 Composition API only.
+- Build reusable primitives for status badges, entity links, approval cards, and log entries.
+- Keep pages thin; move logic into composables and services.
+- Use route-level pages and feature folders.
+
+## Server rules
+
+- Separate API handlers from use-case logic.
+- All workflow side effects must create audit entries.
+- Budget tracking must go through a single service.
+- Provider calls must be wrapped behind adapters.
+- Keep `apps/server/src/app.ts` as a thin composition root. Avoid mixing queue handler internals, lifecycle internals, and route registration directly in one file.
+- Place server bootstrapping concerns under `apps/server/src/bootstrap/*` (`repositories`, `queue-handlers`, `lifecycle`, `routes`, `http`, `helpers`).
+- When server wiring changes, prefer behavior-first refactors: keep API contracts, approval/budget/audit flow, and scheduler behavior unchanged unless explicitly required.
+
+## Database rules
+
+- Prisma schema is the source of truth.
+- Never access SQLite directly with scattered raw queries unless justified.
+- Add migrations for schema changes.
+- Seed only minimal demo data.
+
+## Logging and observability
+
+- Human-facing summaries belong in audit metadata or summaries.
+- Avoid dumping full prompt contents into logs by default.
+- Store token and cost numbers on every provider call.
+- Use trace ids to connect runs, logs, and budget usage.
+
+## Testing rules
+
+- Add unit tests for policies and state transitions.
+- Add component tests for critical UI states if a test stack exists.
+- Add integration tests for approval, budget, and run lifecycle.
+
+## Definition of done
+
+For each implementation task:
+
+- [ ] Code compiles.
+- [ ] Types pass.
+- [ ] Relevant tests pass.
+- [ ] Audit behavior considered.
+- [ ] Budget behavior considered.
+- [ ] Docs updated if a contract changed.

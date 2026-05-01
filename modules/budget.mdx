@@ -1,0 +1,45 @@
+---
+title: "Budget"
+description: "Track tokens, cost, and caps across agents, projects, and runs."
+icon: "coins"
+---
+
+Budget is the ledger and reporting view for token and cost usage. Every provider call writes a `BudgetUsage` row tagged with run, agent, project, and task.
+
+## Cards
+
+- Total spend
+- Total tokens
+- Monthly trend
+- Top costly agents
+- Top costly projects
+- Cap warnings
+
+## Drill-downs
+
+- By provider
+- By model
+- By run
+- By day / week / month
+
+## Caps
+
+- **Soft cap** — creates a warning Inbox item. Execution continues.
+- **Hard cap** — blocks execution and requires Founder approval to proceed.
+
+Caps are configured globally (`globalBudgetSoftCap`, `globalBudgetHardCap`) and may be applied per agent via `budgetPolicyId`.
+
+## Per-call ledger fields
+
+Each `BudgetUsage` row includes:
+
+- `runId`, `agentId`, `projectId`, `taskId`
+- `provider`, `model`
+- `promptTokens`, `completionTokens`, `totalTokens`
+- `estimatedCost`, `currency`, `recordedAt`
+
+The invariant `totalTokens = promptTokens + completionTokens` is enforced.
+
+## Quota guard
+
+Before any agent or tool execution is enqueued, the **daily quota guard** consumes daily usage and rejects the enqueue if the day's cap is exceeded — see [Runtime and queue](/concepts/runtime-and-queue).

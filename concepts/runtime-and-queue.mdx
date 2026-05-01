@@ -1,0 +1,70 @@
+---
+title: "Runtime and queue"
+description: "How agent runs, tool calls, and tasks flow through the in-process queue."
+icon: "gauge-high"
+---
+
+FamilyCo's runtime is in-process by default. The server schedules work across three queue lanes and exposes engine endpoints for inspection and recovery.
+
+## Lanes
+
+| Lane | Purpose |
+| --- | --- |
+| `agent.run` | Executes agent workflows and updates run lifecycle state. |
+| `tool.execute` | Executes tool calls through runtime policy and audit pipeline. |
+| `task.execute` | Executes ready tasks (single task or agent batch) with heartbeat and audit integration. |
+
+## Concurrency
+
+By default the server auto-scales by CPU cores:
+
+- Agent concurrency: `max(2, floor(cpu/2))`
+- Tool concurrency: `max(4, cpu)`
+
+Override with environment variables:
+
+```bash
+FAMILYCO_QUEUE_AGENT_CONCURRENCY=4
+FAMILYCO_QUEUE_TOOL_CONCURRENCY=8
+```
+
+The queue driver is selected via `FAMILYCO_QUEUE_DRIVER`. The default `memory` driver is in-process and loses pending jobs on restart.
+
+## Guards before enqueue
+
+Two guards run before any agent or tool execution is enqueued:
+
+1. **Daily quota guard** — consumes daily usage; rejects if over the cap.
+2. **Approval guard** — may return `approvalRequired` instead of enqueuing, in which case an `ApprovalRequest` is created and the run pauses.
+
+## Heartbeat runtime
+
+The heartbeat scheduler periodically polls agents and enqueues heartbeat runs. It:
+
+- skips paused or terminated agents,
+- enforces in-flight and cooldown protections,
+- can be force-triggered via the engine endpoint for recovery and debugging.
+
+## Cron runtime
+
+The cron scheduler polls due jobs, executes them, and records per-run success/failure into `CronRunRecord`. Each job persists `lastRunAt` and `nextRunAt` markers.
+
+See [Automation](/modules/automation) for the UI and contract.
+
+## Health and read-only mode
+
+- The health endpoint reports queue stats, migration status, and read-only mode.
+- If startup migration safety fails, the server enters **read-only mode**: mutation routes return `503 READ_ONLY_MODE` until the database is recoverable.
+
+## Engine endpoints
+
+The engine module exposes routes for:
+
+- enqueueing agent runs,
+- enqueueing tool executions,
+- inspecting queued jobs,
+- listing agent run history with filters (state, trigger type, root agent),
+- fetching agent run detail,
+- force-triggering heartbeat polling.
+
+All non-token routes require API key or JWT authentication. Route access enforces a minimum agent level (`L0`, `L1`, `L2`).

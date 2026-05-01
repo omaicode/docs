@@ -1,0 +1,104 @@
+---
+title: "Prompt playbook for AI coding"
+description: "Reusable prompts that keep AI coding aligned with FamilyCo docs."
+icon: "wand-magic-sparkles"
+---
+
+These prompts keep generated code consistent with FamilyCo's architecture and policies. Copy, fill in the blanks, and use them with Cursor, Claude Code, Windsurf, or any other agent IDE.
+
+## Master prompt for implementation
+
+```md
+You are implementing FamilyCo.
+Read docs in this order:
+1. /concepts/architecture
+2. /concepts/domain-model
+3. relevant feature docs only
+4. /guides/coding-rules
+
+Task:
+[DESCRIBE THE IMPLEMENTATION TASK]
+
+Constraints:
+- Tech stack: Electron, Vue 3, PNPM monorepo, Prisma, SQLite.
+- Do not change unrelated files.
+- Reuse existing patterns before inventing new ones.
+- If requirements are unclear, state assumptions explicitly.
+
+Output format:
+1. Files to change
+2. Implementation plan
+3. Code
+4. Edge cases handled
+5. Tests
+```
+
+## New module screen
+
+```md
+Implement the [MODULE] screen for FamilyCo.
+Read:
+- /modules/[module]
+- /guides/coding-rules
+
+Goal:
+[GOAL]
+
+Deliver:
+- page component
+- child components
+- composable / service layer if needed
+- typed mock data or real data adapter
+- loading, empty, error states
+```
+
+## Server use-case
+
+```md
+Implement the server use-case: [USE_CASE].
+Read:
+- /concepts/architecture
+- /concepts/domain-model
+- /concepts/agent-operating-model
+- /concepts/approval-policy
+- /guides/coding-rules
+
+Requirements:
+- emit audit log,
+- enforce approval policy,
+- track budget impact if a provider call exists,
+- return a typed result.
+```
+
+## Prisma schema change
+
+```md
+Update the Prisma schema for [FEATURE].
+Read:
+- /concepts/domain-model
+- /guides/coding-rules
+
+Deliver:
+- schema changes,
+- migration,
+- seed adjustment if required,
+- a note about affected services.
+```
+
+## Refactor without drift
+
+```md
+Refactor [TARGET] in FamilyCo.
+Do not change behavior.
+Read only the minimum relevant docs and current implementation.
+Keep public contracts stable unless explicitly requested.
+Return a short drift-risk checklist before code.
+```
+
+## Token-saving tips
+
+- Quote only the exact requirement lines needed.
+- Reference page paths instead of pasting whole docs.
+- Work one feature at a time.
+- Summarize prior context every 3–5 turns.
+- Move long examples into files instead of the prompt body.

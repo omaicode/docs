@@ -1,0 +1,68 @@
+---
+title: "Configuration"
+description: "Environment variables for runtime, storage, queue, and authentication."
+icon: "sliders"
+---
+
+FamilyCo reads its configuration from a `.env` file at the repo root (server) and `apps/web/.env` (renderer). Copy the examples to start:
+
+```bash
+cp .env.example .env
+cp apps/web/.env.example apps/web/.env
+```
+
+## Runtime
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `NODE_ENV` | `development` | `development` · `production` · `test`. |
+| `PORT` | `4000` | Fastify HTTP port (server / CLI mode only — Electron picks a free port). |
+| `API_PREFIX` | `/api/v1` | URL prefix for all API routes. |
+
+## Storage and database
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `FAMILYCO_REPOSITORY_DRIVER` | `prisma` | `prisma` (SQLite via Prisma) or `memory` (lost on restart). |
+| `DATABASE_URL` | `file:./prisma/dev.db` | SQLite file path used by Prisma. |
+| `FAMILYCO_MIGRATIONS_PATH` | *(unset)* | Optional override for runtime migration path (server / electron packaging). |
+
+In Electron Desktop, `DATABASE_URL` is set automatically to the OS user-data folder:
+
+- macOS: `~/Library/Application Support/FamilyCo/familyco.db`
+- Windows: `C:\Users\<user>\AppData\Roaming\FamilyCo\familyco.db`
+- Linux: `~/.config/FamilyCo/familyco.db`
+
+## Queue
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `FAMILYCO_QUEUE_DRIVER` | `memory` | Job queue driver. `memory` is in-process (jobs lost on restart). |
+| `FAMILYCO_QUEUE_AGENT_CONCURRENCY` | auto | Override agent concurrency. Auto: `max(2, floor(cpu/2))`. |
+| `FAMILYCO_QUEUE_TOOL_CONCURRENCY` | auto | Override tool concurrency. Auto: `max(4, cpu)`. |
+
+## Authentication and security
+
+| Variable | Description |
+| --- | --- |
+| `FAMILYCO_API_KEY` | Internal API key used by the Electron shell to talk to the embedded server. Also serves as the bootstrap API key on first run. |
+| `JWT_SECRET` | Secret used to sign JWT session tokens. |
+| `API_KEY_SALT` | Salt used when hashing API keys before storing them. |
+
+<Warning>
+  Generate strong secrets in production. For example: `openssl rand -hex 32`. Rotating `API_KEY_SALT` invalidates all existing API keys.
+</Warning>
+
+## Renderer (`apps/web/.env`)
+
+Only needed when running the web client standalone against an external server:
+
+| Variable | Description |
+| --- | --- |
+| `VITE_API_BASE_URL` | API base URL (default `http://127.0.0.1:4000`). |
+| `VITE_API_KEY` | API key for the renderer. |
+| `VITE_BEARER_TOKEN` | Optional pre-issued JWT. |
+
+## Read-only mode
+
+If startup migration safety fails, the server enters **read-only mode**. Mutation routes return `503 READ_ONLY_MODE` until you fix the database state and restart. The health endpoint reports read-only status.

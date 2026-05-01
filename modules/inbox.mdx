@@ -1,0 +1,49 @@
+---
+title: "Inbox"
+description: "Approvals, clarifications, and reports — the Founder's queue."
+icon: "inbox"
+---
+
+The Inbox is where execution waits for the Founder. It surfaces approvals, clarification requests, reports, and alerts without forcing the Founder to read the full audit log.
+
+## Item types
+
+| Type | When |
+| --- | --- |
+| `approval` | A risky or destructive action is blocked until approved. |
+| `report` | An agent submitted a deliverable for review. |
+| `alert` | The system flagged something (e.g. soft cap warning). |
+| `info` | Informational only; no action required. |
+
+## Status lifecycle
+
+```txt
+unread · read · archived
+```
+
+## Actions
+
+- Approve
+- Reject
+- Request change
+- Answer clarification
+- Jump to related entity
+
+## Display priorities
+
+- Newest critical items first.
+- Show why execution is blocked.
+- Show the impact of approve vs reject.
+
+## Resolution
+
+When the Founder resolves an Inbox item:
+
+| Resolution | Effect on the run |
+| --- | --- |
+| Approve | Continue from checkpoint. |
+| Reject | Cancel or trigger replanning. |
+| Request change | Create a follow-up planning step. |
+| Clarification answer | Inject the answer into run context and resume. |
+
+See [Approval policy](/concepts/approval-policy) for the full categorization of what triggers approvals vs clarifications.

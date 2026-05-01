@@ -1,0 +1,39 @@
+---
+title: "Projects"
+description: "Group related work, assign owners, and protect defaults."
+icon: "folder-tree"
+---
+
+Projects group related tasks under an owner agent. They support parent-child hierarchy and an optional workspace directory.
+
+## Views
+
+- **List** with filters
+- **Board / status columns**
+- **Detail page**
+- **Milestone summary**
+
+## Actions
+
+- Create project
+- Edit scope and status
+- Assign owner agent
+- Link tasks
+- Review risk and budget cap
+
+## Fields
+
+- `name`, `description`
+- `ownerAgentId`
+- `parentProjectId` *(optional, for hierarchy)*
+- `dirPath` *(optional workspace directory)*
+
+## Constraints
+
+- Projects can be linked to tasks, inbox items, and audit logs.
+- Default project protection prevents accidental archive/delete.
+- Archiving an active project requires approval — see [Approval policy](/concepts/approval-policy).
+
+## How directives create projects
+
+When the Executive Agent decomposes a directive, it may create a new project (or update an existing one) and emit tasks against it. The chat reply links to the project so the Founder can drill in immediately.
