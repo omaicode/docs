@@ -1,0 +1,83 @@
+---
+title: "Skills standard"
+description: "How skills are stored, discovered, enabled, and used in FamilyCo."
+icon: "sparkles"
+---
+
+A **skill** is a packaged capability an agent can use — a reusable prompt, a structured output, or a procedure. FamilyCo discovers skills from disk and makes them switchable per company.
+
+## Canonical path
+
+```txt
+{CODEBASE}/skills/{SKILL_NAME}/SKILL.md
+```
+
+Each skill lives in its own directory. The directory name must match the skill slug (lowercase letters, numbers, hyphens only).
+
+## Required rules
+
+- Every skill lives in its own directory.
+- `SKILL.md` is mandatory.
+- Supporting files may sit beside `SKILL.md`.
+- Skills are scanned on app start and on manual rescan.
+
+## Frontmatter
+
+### Required
+
+- `name` — must equal the directory slug.
+- `description` — explain what the skill does and when to use it.
+
+### Optional
+
+- `license`
+- `compatibility` — note FamilyCo runtime constraints if relevant.
+- `metadata` — may include `owner`, `version`, `tags`, `allowedModules`.
+
+## Recommended folder structure
+
+```txt
+skills/
+└─ finance-analyst/
+   ├─ SKILL.md
+   ├─ examples.md
+   ├─ references.md
+   └─ templates/
+```
+
+Keep `SKILL.md` concise so discovery stays cheap. Put long examples and references in side files; the runtime loads them only when a task truly needs them.
+
+## Example `SKILL.md`
+
+```md
+---
+name: finance-analyst
+description: Analyze budget usage, identify spend anomalies, and produce concise reports for FamilyCo budget reviews.
+compatibility: FamilyCo server runtime, markdown output, no browser needed.
+metadata:
+  owner: familyco
+  version: 1.0.0
+  tags: [budget, finance, reporting]
+---
+
+# When to use
+Use when an agent needs to analyze token or cost data.
+
+# Inputs
+- budget usage rows
+- time window
+- grouping level
+
+# Outputs
+- summary
+- anomalies
+- recommendations
+```
+
+## Enable / disable behavior
+
+- Disabled skills remain discoverable in the UI but cannot be selected for new runs.
+- Existing completed runs still reference disabled skills historically.
+- If a run requests a disabled skill, the runtime creates an Inbox warning instead of silently substituting.
+
+See the [Skills module](/modules/skills) for the UI flows.

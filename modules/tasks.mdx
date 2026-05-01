@@ -1,0 +1,54 @@
+---
+title: "Tasks"
+description: "Atomic units of work with dependencies, readiness rules, and approvals."
+icon: "list-check"
+---
+
+Tasks belong to a project (or exist standalone). They have an assignee, a status lifecycle, dependencies, and readiness rules.
+
+## Views
+
+- **List**
+- **Kanban / grouped list**
+- **Detail panel**
+
+## Actions
+
+- Create task
+- Assign assignee agent
+- Update status
+- Add dependencies (`dependsOnTaskIds`)
+- Define readiness rules
+- Add acceptance criteria
+- Send for approval
+
+## Status lifecycle
+
+```txt
+pending · in_progress · review · done · blocked · cancelled
+```
+
+## Priority lifecycle
+
+```txt
+low · medium · high · urgent
+```
+
+## Readiness
+
+A task is **execution-ready** only when:
+
+1. Every entry in `dependsOnTaskIds` resolves to a `done` task, **and**
+2. All supported `readinessRules` are satisfied.
+
+The `task.execute` queue lane evaluates readiness before pulling a task into a run.
+
+## Inbox interactions
+
+Tasks can generate Inbox items when:
+
+- the assignee agent needs clarification,
+- a risky action requires approval,
+- a budget cap would be crossed by execution.
+
+Resolution in the Inbox resumes the underlying run — see [Approval policy](/concepts/approval-policy).

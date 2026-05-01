@@ -1,33 +1,84 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API introduction"
+description: "Authentication, base URL, and module layout for the FamilyCo API."
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+The FamilyCo server exposes a Fastify HTTP API. Every workflow surface — chat, agents, projects, tasks, inbox, audit, budget, skills, tools, plugins, automation, providers — has a corresponding controller under `apps/server/src/modules/<module>`.
 
-## Welcome
+## Base URL
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+| Mode | Base URL |
+| --- | --- |
+| Local server | `http://127.0.0.1:4000` |
+| Electron desktop | The embedded server picks a free port at startup. |
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+All routes live under the `API_PREFIX` (default `/api/v1`).
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+The API supports two auth modes. Both are described in detail in [Auth and access control](/modules/auth).
+
+### API key
+
+Send your key in the `Authorization` header:
+
+```http
+Authorization: Bearer <FAMILYCO_API_KEY>
+```
+
+API keys are stored as `ApiKeyRecord` rows. Only the hash is persisted; the raw value is returned exactly once at creation. The `API_KEY_SALT` env var is used for hashing — see [Configuration](/guides/configuration).
+
+### JWT
+
+Mint a short-lived JWT from an API key, then use it like a bearer token:
+
+```http
+Authorization: Bearer <jwt>
+```
+
+JWTs are signed with `JWT_SECRET`.
+
+## Authorization
+
+- All non-token routes require API key or JWT authentication.
+- Route access enforces a minimum agent **level**: `L0` (executive), `L1` (manager), or `L2` (worker).
+- API key lifecycle operations (create / revoke / rotate) are auditable.
+
+## Read-only mode
+
+If startup migration safety fails, the server enters read-only mode. Mutation requests return:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "statusCode": 503,
+  "code": "READ_ONLY_MODE",
+  "message": "Application is in read-only mode because database migration failed"
+}
 ```
+
+The health endpoint reports queue stats, migration status, and read-only mode.
+
+## Module layout
+
+The server registers controllers per module. The current set:
+
+- `auth` — API keys, JWT issuance.
+- `agent` — agent management and chat.
+- `approval` — approvals and resolutions.
+- `audit` — audit log queries.
+- `budget` — usage and caps.
+- `cron` — recurring automation.
+- `dashboard` — aggregated views.
+- `engine` — queue and run inspection.
+- `inbox` — Founder queue.
+- `knowledge` — knowledge artifacts.
+- `plugins` — plugin discovery and enablement.
+- `project` — project CRUD.
+- `provider` — provider connections.
+- `settings` — settings store.
+- `setup` — first-run setup.
+- `skills` — skill discovery and toggling.
+- `task` — task CRUD and execution.
+- `tools` — tool policy and custom fields.
+
+For per-module behavior, contracts, and constraints, see the [Modules](/modules/chat) section.

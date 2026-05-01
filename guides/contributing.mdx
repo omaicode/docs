@@ -1,0 +1,62 @@
+---
+title: "Contributing"
+description: "Branching, validation gates, and PR expectations."
+icon: "code-pull-request"
+---
+
+Thanks for contributing to FamilyCo. This page captures the minimum bar for a clean PR.
+
+## Workflow
+
+1. Fork or branch from `master`.
+2. Run [Developer setup](/development) and confirm `pnpm dev` boots.
+3. Make focused changes — avoid drive-by edits in unrelated files.
+4. Run validation gates locally before pushing.
+5. Open a PR with a clear summary, screenshots for UI changes, and a test plan.
+
+## Validation gates
+
+At minimum:
+
+```bash
+pnpm -w typecheck
+pnpm --filter @familyco/server test
+pnpm --filter @familyco/web build
+```
+
+For broader changes:
+
+```bash
+pnpm build
+pnpm test
+```
+
+## What every PR should include
+
+- A short description of what changed and why.
+- Edge cases handled.
+- Test coverage (new or updated tests where relevant).
+- Notes on audit / budget impact if you touched a workflow.
+- Docs updates if you changed a contract — see the [coding rules](/guides/coding-rules).
+
+## Architecture guardrails
+
+Before opening a PR, double-check:
+
+- Business logic lives in `packages/core` (and `packages/agent-runtime` where appropriate).
+- `packages/core` does not import other internal packages.
+- Side effects with significant impact go through the [approval flow](/concepts/approval-policy).
+- Database access goes through repository abstractions.
+- Prisma schema changes ship with a migration.
+
+## Changesets
+
+This repo uses [Changesets](https://github.com/changesets/changesets). For user-visible changes, add a changeset describing the change and its semver impact:
+
+```bash
+pnpm changeset
+```
+
+## Releasing
+
+Release builds are produced from tags on `master`. Desktop installers (`.dmg`, `.exe`, `.AppImage`) are attached to each [GitHub release](https://github.com/omaicode/familyco/releases).

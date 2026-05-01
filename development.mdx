@@ -1,95 +1,139 @@
 ---
-title: 'Development'
-description: 'Preview changes locally to update your docs'
-icon: 'terminal'
+title: "Developer setup"
+description: "Run the FamilyCo monorepo locally for development."
+icon: "terminal"
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+This guide is for contributors and developers who want to build, modify, or run FamilyCo from source. End users should use the [release builds](/quickstart) instead.
 
-Follow these steps to install and run Mintlify on your operating system.
+## Prerequisites
 
-<Steps>
-<Step title="Install the Mintlify CLI">
+- **Node.js 22 LTS**
+- **pnpm 10**
+- A POSIX shell (macOS, Linux, or WSL on Windows)
 
-```bash
-npm i -g mint
-```
-</Step>
-
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+## 1. Install dependencies
 
 ```bash
-mint dev
+pnpm install
 ```
 
-A local preview of your documentation will be available at `http://localhost:3000`.
+The repository is a [pnpm workspace](https://pnpm.io/workspaces) managed by [Turborepo](https://turbo.build/). Workspaces under `apps/*` and `packages/*` are linked automatically.
 
-</Step>
-</Steps>
-
-## Custom ports
-
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+## 2. Configure environment
 
 ```bash
-mint dev --port 3333
+cp .env.example .env
+cp apps/web/.env.example apps/web/.env
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+The web `.env` file is primarily needed when running the web client standalone (against an external server). The default local server URL is `http://127.0.0.1:4000`.
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+See [Configuration](/guides/configuration) for the full list of environment variables.
 
-## Mintlify versions
+## 3. Run development mode
 
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
+<Tabs>
+  <Tab title="Server + Web">
+    Runs the Fastify server and the Vue 3 web client together.
+
+    ```bash
+    pnpm dev
+    ```
+
+    Default endpoints:
+
+    - Web: `http://127.0.0.1:5173`
+    - Server: `http://127.0.0.1:4000` (API at `/api/v1`)
+  </Tab>
+  <Tab title="Desktop (Electron)">
+    Builds workspace packages and starts the web + Electron runtime.
+
+    ```bash
+    pnpm dev:electron
+    ```
+
+    The desktop shell embeds its own server and stores data in your OS user-data folder.
+  </Tab>
+  <Tab title="Everything in parallel">
+    ```bash
+    pnpm dev:p
+    ```
+
+    Runs all `dev` tasks across the workspace in parallel. Useful when you want hot reload across packages too.
+  </Tab>
+</Tabs>
+
+## Common commands
+
+| Goal | Command |
+| --- | --- |
+| Run server + web | `pnpm dev` |
+| Run web + electron | `pnpm dev:electron` |
+| Build all packages | `pnpm build` |
+| Build electron release | `pnpm build:electron` |
+| Run all tests | `pnpm test` |
+| Typecheck the workspace | `pnpm typecheck` |
+| Generate the Prisma client | `pnpm prisma:generate` |
+| Run a Prisma migration | `pnpm prisma:migrate` |
+
+Package-scoped examples:
 
 ```bash
-npm mint update
+pnpm --filter @familyco/server dev
+pnpm --filter @familyco/web dev
+pnpm --filter @familyco/electron dev
 ```
 
-## Validating links
+## Validation gates
 
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+Before opening a pull request, run at minimum:
 
 ```bash
-mint broken-links
+pnpm -w typecheck
+pnpm --filter @familyco/server test
+pnpm --filter @familyco/web build
 ```
 
-## Deployment
+For broader changes:
 
-If the deployment is successful, you should see the following:
-
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
-
-## Code formatting
-
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+```bash
+pnpm build
+pnpm test
+```
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
+  <Accordion title="Port 4000 is already in use">
+    Stop stale server processes (or change `PORT` in `.env`) and rerun `pnpm dev`.
   </Accordion>
+  <Accordion title="Electron native module mismatch after Node/runtime upgrade">
+    Rebuild native modules and restart desktop mode:
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
+    ```bash
+    pnpm --filter @familyco/electron rebuild:native
+    pnpm dev:electron
+    ```
+  </Accordion>
+  <Accordion title="Server is in read-only mode">
+    Migration safety failed at startup. Check the server logs, fix the database state, then restart. While in read-only mode, mutation routes return `503 READ_ONLY_MODE`.
   </Accordion>
 </AccordionGroup>
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Architecture" icon="diagram-project" href="/concepts/architecture">
+    Monorepo layout, runtime lanes, and design constraints.
+  </Card>
+  <Card title="Coding rules" icon="ruler" href="/guides/coding-rules">
+    Conventions for AI agents and human contributors.
+  </Card>
+  <Card title="Domain model" icon="database" href="/concepts/domain-model">
+    Core entities and invariants enforced by the schema.
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/guides/configuration">
+    Environment variables for runtime, queue, auth, and more.
+  </Card>
+</Columns>

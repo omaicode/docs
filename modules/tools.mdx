@@ -1,0 +1,47 @@
+---
+title: "Tools"
+description: "Built-in and plugin-provided tools, with policy-driven enablement."
+icon: "wrench"
+---
+
+The runtime exposes two kinds of tools:
+
+- **Built-in tools** — shipped with the server. Immutable and always enabled.
+- **Plugin tools** — contributed by enabled plugins. Can be turned on/off and configured.
+
+## Views
+
+- **Tool inventory** (built-in + plugin)
+- **Tool detail / config panel**
+- **Status and missing-required-config indicators**
+
+## Actions
+
+- Enable a plugin tool
+- Disable a plugin tool
+- View parameter schema
+- Update custom field values for a plugin tool
+
+## Constraints
+
+- Built-in tools are immutable.
+- Plugin tools with **missing required custom fields** cannot be enabled.
+- Enabled plugin tools must be available to the chat engine prompt and tool context.
+
+## Policy storage
+
+Tool policy is persisted as settings:
+
+| Key | Purpose |
+| --- | --- |
+| `tools.registry` | Plugin tool enable/disable policy. |
+| `tools.customFields` | Per-plugin-tool custom field values. |
+
+## Execution flow
+
+1. Runtime tool definitions are collected from built-in tools and enabled plugins.
+2. Required custom fields are validated before enabling a plugin tool.
+3. The chat engine receives a tool list filtered by agent level.
+4. The executor injects persisted custom field values into plugin tool execution arguments.
+
+See [Plugins](/modules/plugins) for how plugins contribute tools and skills.

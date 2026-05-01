@@ -1,0 +1,70 @@
+---
+title: "Approval policy"
+description: "Which actions need approval, which trigger clarification, and how resolution flows back into a run."
+icon: "shield-check"
+---
+
+The approval policy protects Founder control while preserving AI autonomy. Every approval request maps to an `ApprovalRequest` and surfaces in the [Inbox](/modules/inbox).
+
+## Approval categories
+
+### AP-01 · Required before action
+
+These actions must always be approved before they execute.
+
+- Create agent
+- Delete agent
+- Archive an active project
+- Spend above the hard cap
+- Rotate provider credentials
+- Modify company-wide defaults
+- Perform destructive bulk changes
+
+### AP-02 · Required unless a policy override exists
+
+Default to approval; can be downgraded via policy.
+
+- Create a project flagged as high-risk
+- Create recurring automation
+- Assign a critical task to a new agent
+- Call external APIs with side effects
+- Use a premium model above the cost threshold
+
+### AP-03 · Clarification instead of approval
+
+These trigger clarification items in the Inbox; the run resumes when the Founder answers.
+
+- Vague Founder intent
+- Missing deadline
+- Missing budget cap
+- Conflicting project ownership
+- Unclear acceptance criteria
+
+## Inbox item template
+
+Approval and clarification items render with a consistent shape:
+
+- **type** (approval / clarification / report / alert / info)
+- **title**
+- **why blocked**
+- **recommendation**
+- **impact if approved**
+- **impact if rejected**
+- **deadline** *(if any)*
+- **related entities**
+
+## Resolution behavior
+
+| Resolution | Effect |
+| --- | --- |
+| **Approve** | Continue the run from its checkpoint. |
+| **Reject** | Cancel the run or trigger replanning. |
+| **Request change** | Create a follow-up planning step. |
+| **Clarification answer** | Inject the answer into run context and resume. |
+
+## Default budget policy
+
+- **Soft cap:** create a warning Inbox item.
+- **Hard cap:** block execution and require approval.
+
+Budget caps are configured in **Settings** at the company level and per agent. See [Budget](/modules/budget) for reporting and drill-downs.

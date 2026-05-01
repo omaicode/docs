@@ -1,0 +1,44 @@
+---
+title: "Engine and queue"
+description: "Inspect queued jobs, list agent runs, and force-trigger heartbeats."
+icon: "gauge-high"
+---
+
+The Engine module exposes runtime control surfaces. Use it to inspect what the queue is doing, drill into agent runs, and recover from edge cases.
+
+## Views
+
+- **Pending queue jobs**
+- **Agent run list** with filters: state, trigger type, root agent
+- **Agent run detail**
+- **Heartbeat status / trigger controls**
+
+## Actions
+
+- Enqueue an agent run
+- Enqueue a tool execution
+- Force-trigger heartbeat poll
+
+## Constraints
+
+- The **daily quota guard** consumes usage before enqueue.
+- The **approval guard** may return `approvalRequired` instead of an immediate enqueue.
+- Queue lanes must support `agent.run`, `tool.execute`, and `task.execute`.
+
+## Run lifecycle
+
+```txt
+queued → planning → waiting_approval | executing → completed | failed | cancelled
+```
+
+`AgentRun.triggerType` records why the run started:
+
+| triggerType | Source |
+| --- | --- |
+| `founder_chat` | Founder sent a directive in chat. |
+| `task_execution` | A task became ready and was scheduled. |
+| `retry` | Retry of a failed run. |
+| `approval_resume` | Founder resolved an approval/clarification. |
+| `schedule` | Cron or heartbeat scheduler. |
+
+See [Runtime and queue](/concepts/runtime-and-queue) for concurrency, guards, and read-only mode behavior.

@@ -1,0 +1,42 @@
+---
+title: "Provider connections"
+description: "Connect AI providers, pick a primary, and select default models."
+icon: "plug"
+---
+
+Provider connections let the Founder configure which AI providers and models FamilyCo uses. Connections persist API keys (or OAuth tokens) and a primary-provider selection.
+
+## Views
+
+- **Provider inventory** with connection status
+- **Available models** and the current selected model
+- **Auth type** (`apikey` / `oauth`) and primary-provider marker
+
+## Actions
+
+- Test a provider connection
+- Connect / disconnect a provider with API key
+- Connect a provider via OAuth *(desktop runtime only)*
+- Select primary provider and default model
+
+## Constraints
+
+- A provider must be connected before it can become primary.
+- OAuth endpoints are unavailable in **server** runtime mode (they require the desktop shell).
+- Connection and selection actions produce audit records.
+
+## Where defaults apply
+
+- `Company.defaultProvider` and `Company.defaultModel` are the company-wide defaults.
+- Each agent may override with its own `provider`, `defaultModel`, `temperature`, and `maxTokens`.
+- The chat session uses the recipient agent's settings; the Executive Agent inherits company defaults unless overridden.
+
+## Renderer environment
+
+When the web client runs against an external server, it reads its own variables:
+
+- `VITE_API_BASE_URL`
+- `VITE_API_KEY`
+- `VITE_BEARER_TOKEN`
+
+See [Configuration](/guides/configuration) for the complete environment reference.

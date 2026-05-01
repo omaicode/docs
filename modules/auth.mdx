@@ -1,0 +1,45 @@
+---
+title: "Auth and access control"
+description: "API keys, JWT tokens, and level-based route gating."
+icon: "key"
+---
+
+The FamilyCo API supports two authentication modes and gates routes by minimum agent level.
+
+## Modes
+
+- **API key** — long-lived credential, used by the Electron shell and by integrations.
+- **JWT** — short-lived token minted from an API key.
+
+## Views
+
+- API key management panel
+- Token issuance output (JWT + level)
+- Auth and audit history for key operations
+
+## Actions
+
+- Create API key
+- Revoke API key
+- Rotate API key
+- Issue JWT from API key
+
+## Constraints
+
+- All non-token routes require API key or JWT authentication.
+- Route access enforces a minimum agent level (`L0`, `L1`, `L2`).
+- API key lifecycle operations are auditable.
+
+## Storage
+
+API keys are stored as `ApiKeyRecord` rows. Only the hash is persisted (`keyHash`); raw keys are returned exactly once at creation. The `API_KEY_SALT` environment variable is used when hashing — rotate it carefully because it invalidates existing keys.
+
+## Bootstrap behavior
+
+On first run, the Electron shell uses `FAMILYCO_API_KEY` from the environment as the bootstrap key. Replace this with a long random secret in production:
+
+```bash
+openssl rand -hex 32
+```
+
+Set the same value (or a derived key) in your renderer's `VITE_API_KEY` if running web standalone against an external server.

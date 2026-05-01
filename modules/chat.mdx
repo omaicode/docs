@@ -1,0 +1,38 @@
+---
+title: "Chat"
+description: "The Founder's command center — directives, sessions, and structured replies."
+icon: "comments"
+---
+
+Chat is the primary entry point for the Founder. Each conversation is a session bound to an agent; directives become AgentRuns that touch projects, tasks, and the inbox.
+
+## UI areas
+
+- **Conversation list** — sessions per executive agent.
+- **Message timeline** — Founder messages and agent replies.
+- **Context sidebar** — referenced projects, tasks, agents, and inbox items.
+- **Quick actions** — open referenced entities, approve from inbox, jump to audit.
+
+## Behaviors
+
+- The Founder can send a directive at any time.
+- Multiple chat sessions per agent are supported; switch via the session sidebar.
+- The most recently selected session is restored when the Founder returns to Chat.
+- Messages may reference projects, tasks, agents, and inbox items.
+- AI replies use a structured format: **understanding**, **plan**, **approvals**, **next steps**.
+- Chat displays when an action created or updated entities and links to them.
+
+## How a directive flows
+
+1. Founder sends a message.
+2. Server creates an `AgentRun` with `triggerType = founder_chat`.
+3. Executive Agent interprets, plans, and may create or update Projects/Tasks.
+4. If the action requires approval, the run pauses (`waiting_approval`) and an Inbox item is created.
+5. The Founder approves, rejects, or answers — the run resumes from its checkpoint.
+6. Outcomes return as a structured chat reply with linked entities.
+
+## Tool context per session
+
+Each session receives a tool list filtered by the agent's level (`L0`/`L1`/`L2`) plus any plugin tools the company has enabled. Built-in tools are immutable; plugin tools require valid custom field values before they become available.
+
+See [Tools](/modules/tools) for the policy model and [Plugins](/modules/plugins) for capability registration.

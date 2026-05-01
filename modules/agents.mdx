@@ -1,0 +1,46 @@
+---
+title: "Agents"
+description: "Manage your AI workforce — Executive, Manager, and Worker agents."
+icon: "user-tie"
+---
+
+Agents are the core actors. Each has a level, mission, model settings, and budget policy. The Executive Agent (`L0`) manages Manager Agents (`L1`) which manage Workers (`L2`).
+
+## Views
+
+- **Agent list** — all agents with status and level.
+- **Agent detail** — mission, manager, skills, recent runs, budget usage.
+- **Hierarchy tree** — visualize manager/worker relationships.
+- **Create / edit form** — name, title, level, mission, model, budget policy.
+
+## Actions
+
+- Create an agent
+- Edit
+- Archive
+- Pause / resume
+- Assign manager
+- Assign skills
+- Inspect budget usage
+
+## Status lifecycle
+
+```txt
+active · idle · running · error · paused · terminated · archived
+```
+
+Terminated or archived agents cannot receive new tasks. Paused agents are skipped by the heartbeat scheduler.
+
+## Levels and routing
+
+| Level | Role |
+| --- | --- |
+| `L0` | Executive Agent — top of hierarchy. Exactly one active per company. |
+| `L1` | Manager Agent — owns a domain or department. |
+| `L2` | Worker Agent — executes specialized tasks. |
+
+Route access in the API is gated by minimum level; tool lists are filtered per session by the recipient agent's level.
+
+## Sub-agent creation
+
+The Executive Agent can propose or create subordinate agents. Creation follows the [approval policy](/concepts/approval-policy) — by default, agent creation requires Founder approval unless explicit policy says otherwise.
